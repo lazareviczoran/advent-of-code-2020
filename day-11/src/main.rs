@@ -1,4 +1,9 @@
 use std::fs::read_to_string;
+use std::thread::sleep;
+use std::time::Duration;
+
+const ESC: &str = "\x1B[";
+const RESET: &str = "\x1B[0m";
 
 fn main() {
     let mut data = read("input.txt");
@@ -11,7 +16,7 @@ fn main() {
 }
 
 fn simulate_and_count(data: &mut Vec<Vec<char>>, look_further: bool) -> usize {
-    simulate_changes(data, look_further);
+    simulate_changes(data, look_further, false);
     count_occupied(&data)
 }
 
@@ -21,10 +26,14 @@ fn count_occupied(data: &[Vec<char>]) -> usize {
         .sum()
 }
 
-fn simulate_changes(data: &mut Vec<Vec<char>>, look_further: bool) {
+fn simulate_changes(data: &mut Vec<Vec<char>>, look_further: bool, visualize: bool) {
     let min_occupied_required = if look_further { 5 } else { 4 };
     loop {
         let curr_state = data.clone();
+        if visualize {
+            sleep(Duration::from_millis(750));
+            print_map(&curr_state);
+        }
         let mut changed = 0;
         for (x, row) in data.iter_mut().enumerate() {
             for (y, field) in row.iter_mut().enumerate() {
@@ -81,16 +90,26 @@ fn count_adjacent(data: &[Vec<char>], x: i32, y: i32, look_further: bool) -> usi
     count
 }
 
-#[allow(dead_code)]
 fn print_map(data: &[Vec<char>]) {
-    let mut s = String::new();
+    let black_background = 40;
+    let mut s = format!("{}[2J", 27 as char);
     for row in data {
         for field in row {
-            s.push(*field);
+            let color = match &field {
+                '#' => 41,
+                '.' => 40,
+                'L' => 47,
+                _ => panic!("unexpected char"),
+            };
+            s.push_str(&format!("{}{2}{1};1m", RESET, color, ESC));
+            s.push(' ');
         }
+
+        s.push_str(&format!("{}{2}{1};1m", RESET, black_background, ESC));
         s.push('\n');
     }
-    println!("{}\n\n", s);
+    s.push_str(&format!("{}{2}{1};1m", RESET, black_background, ESC));
+    println!("{}", s);
 }
 
 fn read(filename: &str) -> Vec<Vec<char>> {
