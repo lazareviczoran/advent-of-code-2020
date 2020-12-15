@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 fn main() {
     let data = [10, 16, 6, 0, 1, 17];
     println!("part1 solution: {:?}", get_nth_value(&data, 2020));
@@ -7,15 +5,14 @@ fn main() {
 }
 
 fn get_nth_value(data: &[usize], n: usize) -> usize {
-    let mut values = data
-        .iter()
-        .enumerate()
-        .map(|(i, &val)| (val, i + 1))
-        .collect::<HashMap<usize, usize>>();
-    let length = data.len();
-    let mut prev = data[length - 1];
-    for i in length..n {
-        prev = i - values.insert(prev, i).unwrap_or(i);
+    let mut values = vec![0; n];
+    for (i, &val) in data.iter().enumerate() {
+        values[val] = i + 1;
+    }
+    let mut prev = *data.last().expect("vec is empty");
+    for i in data.len()..n {
+        let v = std::mem::replace(&mut values[prev], i);
+        prev = if v == 0 { 0 } else { i - v };
     }
     prev
 }
