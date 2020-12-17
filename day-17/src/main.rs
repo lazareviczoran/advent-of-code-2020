@@ -11,18 +11,14 @@ fn main() {
     println!("part2 solution: {}", count(data));
 }
 
-fn count<const N: usize>(mut active: HashSet<[i32; N]>) -> usize {
+fn count<const N: usize>(mut active: HashSet<Point<N>>) -> usize {
     let diffs = generate_diffs::<N>();
     (0..6).for_each(|_| {
-        let mut counts = HashMap::new();
-        active.iter().for_each(|pos| {
+        let counts = active.iter().fold(HashMap::new(), |mut acc, pos| {
             diffs.iter().for_each(|diff| {
-                let mut curr_pos = *pos;
-                for (val, diff_val) in curr_pos.iter_mut().zip(diff.iter()) {
-                    *val += diff_val;
-                }
-                *counts.entry(curr_pos).or_insert(0) += 1;
-            })
+                *acc.entry(add(pos, diff)).or_insert(0) += 1;
+            });
+            acc
         });
         active = counts
             .iter()
@@ -34,17 +30,17 @@ fn count<const N: usize>(mut active: HashSet<[i32; N]>) -> usize {
     active.len()
 }
 
-fn generate_diffs<const N: usize>() -> Vec<[i32; N]> {
+fn generate_diffs<const N: usize>() -> Vec<Point<N>> {
     (0..N)
         .map(|_i| -1..=1)
         .multi_cartesian_product()
         .filter_map(convert)
-        .collect::<Vec<_>>()
+        .collect()
 }
 
-fn convert<const N: usize>(v: Vec<i32>) -> Option<[i32; N]> {
+fn convert<const N: usize>(v: Vec<i32>) -> Option<Point<N>> {
     let boxed = v.into_boxed_slice();
-    let mut a: [i32; N] = [0; N];
+    let mut a = [0; N];
     a.copy_from_slice(&boxed[0..N]);
     if a == [0; N] {
         return None;
@@ -52,7 +48,7 @@ fn convert<const N: usize>(v: Vec<i32>) -> Option<[i32; N]> {
     Some(a)
 }
 
-fn read<const N: usize>(filename: &str) -> HashSet<[i32; N]> {
+fn read<const N: usize>(filename: &str) -> HashSet<Point<N>> {
     read_to_string(filename)
         .expect("Failed to read file")
         .lines()
@@ -70,6 +66,13 @@ fn read<const N: usize>(filename: &str) -> HashSet<[i32; N]> {
             );
             acc
         })
+}
+
+type Point<const N: usize> = [i32; N];
+fn add<const N: usize>(pos: &Point<N>, diff: &Point<N>) -> Point<N> {
+    let mut res = *pos;
+    res.iter_mut().zip(diff.iter()).for_each(|(a, &b)| *a += b);
+    res
 }
 
 #[cfg(test)]
