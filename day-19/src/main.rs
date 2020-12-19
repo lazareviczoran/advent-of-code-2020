@@ -20,11 +20,12 @@ fn count_matches(
     data: &(HashMap<usize, Vec<Value>>, Vec<String>),
     filter_fn: &dyn Fn(&(usize, usize)) -> bool,
 ) -> usize {
+    let (rules, messages) = data;
     let mut memo = HashMap::new();
-    let possibilities_42 = generate_possibilities(&data.0, &mut memo, 42);
-    let possibilities_31 = generate_possibilities(&data.0, &mut memo, 31);
+    let possibilities_42 = generate_possibilities(&rules, &mut memo, 42);
+    let possibilities_31 = generate_possibilities(&rules, &mut memo, 31);
 
-    data.1
+    messages
         .iter()
         .filter_map(|message| {
             let mut s = message.get(..).unwrap();
@@ -53,10 +54,11 @@ fn count_matches(
 
 #[allow(dead_code)]
 fn count_matches_generated(data: &(HashMap<usize, Vec<Value>>, Vec<String>)) -> usize {
+    let (rules, messages) = data;
     let mut memo = HashMap::new();
-    let possibilities = generate_possibilities(&data.0, &mut memo, 0);
+    let possibilities = generate_possibilities(&rules, &mut memo, 0);
 
-    data.1
+    messages
         .iter()
         .filter(|message| possibilities.contains(message))
         .count()
