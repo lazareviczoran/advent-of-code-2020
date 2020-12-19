@@ -28,13 +28,16 @@ fn count_matches2(data: &mut (HashMap<usize, Vec<Value>>, Vec<String>)) -> usize
     count_matches(data)
 }
 
-fn matches_rule(
-    message: &str,
+fn matches_rule<'a>(
+    message: &'a str,
     rules: &HashMap<usize, Vec<Value>>,
     rule: usize,
-    memo: &mut HashMap<(String, usize), bool>,
+    memo: &mut HashMap<(&'a str, usize), Vec<usize>>,
 ) -> Vec<usize> {
-    let matched_strings = match rules.get(&rule) {
+    if let Some(found) = memo.get(&(message, rule)) {
+        return found.clone();
+    }
+    let matched_positions = match rules.get(&rule) {
         Some(values) => values.iter().fold(Vec::new(), |mut acc, v| {
             match &v {
                 Value::String(s) => {
@@ -67,7 +70,8 @@ fn matches_rule(
         }),
         None => Vec::new(),
     };
-    matched_strings
+    memo.insert((message, rule), matched_positions.clone());
+    matched_positions
 }
 
 fn read(filename: &str) -> (HashMap<usize, Vec<Value>>, Vec<String>) {
