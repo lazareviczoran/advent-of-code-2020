@@ -11,7 +11,6 @@ fn count_matches(data: &(HashMap<usize, Vec<Value>>, Vec<String>)) -> usize {
     let mut memo = HashMap::new();
     data.1
         .iter()
-        .cloned()
         .filter(|msg| {
             let hits = matches_rule(&msg, &data.0, 0, &mut memo);
             !hits.is_empty() && hits.iter().any(|&i| i == msg.len())
