@@ -14,34 +14,23 @@ fn main() {
 #[derive(Debug, Clone)]
 struct Game {
     decks: [VecDeque<usize>; 2],
-    prev_states: HashSet<u128>,
-    curr_state: u128,
+    prev_states: HashSet<[VecDeque<usize>; 2]>,
     initial_decks: [VecDeque<usize>; 2],
-    initial_state: u128,
     winner: usize,
 }
 impl Game {
     pub fn new(decks: [VecDeque<usize>; 2]) -> Self {
         let initial_decks = decks.clone();
-        let mut curr_state = 0;
-        for (val1, val2) in decks[0].iter().zip(decks[1].iter()) {
-            curr_state |= 1 << val1;
-            curr_state |= 1 << val2 << 64;
-        }
-        let initial_state = curr_state;
         Self {
             decks,
             initial_decks,
             prev_states: HashSet::new(),
-            curr_state,
-            initial_state,
             winner: usize::MAX,
         }
     }
 
     pub fn reset(&mut self) {
         self.decks = self.initial_decks.clone();
-        self.curr_state = self.initial_state;
         self.prev_states.clear();
         self.winner = usize::MAX;
     }
@@ -56,7 +45,7 @@ impl Game {
 
     pub fn play_recursive(&mut self) {
         while !self.decks[0].is_empty() && !self.decks[1].is_empty() {
-            if self.prev_states.contains(&self.curr_state) {
+            if self.prev_states.contains(&self.decks) {
                 break;
             }
             self.save_state();
@@ -91,20 +80,16 @@ impl Game {
             self.decks[0].pop_front().unwrap(),
             self.decks[1].pop_front().unwrap(),
         );
-        self.curr_state &= !(1 << curr1);
-        self.curr_state &= !(1 << curr2 << 64);
         (curr1, curr2)
     }
 
     pub fn append_to_winner(&mut self, winner: usize, val1: usize, val2: usize) {
         self.decks[winner].push_back(if winner == 0 { val1 } else { val2 });
         self.decks[winner].push_back(if winner == 0 { val2 } else { val1 });
-        self.curr_state |= 1 << val1 << (64 * winner);
-        self.curr_state |= 1 << val2 << (64 * winner);
     }
 
     pub fn save_state(&mut self) {
-        self.prev_states.insert(self.curr_state);
+        self.prev_states.insert(self.decks.clone());
     }
 }
 
