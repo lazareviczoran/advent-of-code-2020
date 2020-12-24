@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 const DIFFS: [(i32, i32, i32); 6] = [
-    (-1, 1, 0),
-    (0, 1, -1),
-    (-1, 0, 1),
     (1, -1, 0),
     (1, 0, -1),
     (0, -1, 1),
+    (-1, 1, 0),
+    (0, 1, -1),
+    (-1, 0, 1),
 ];
 
 fn main() {
